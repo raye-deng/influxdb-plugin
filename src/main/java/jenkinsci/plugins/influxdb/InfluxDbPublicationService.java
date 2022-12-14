@@ -152,7 +152,11 @@ public class InfluxDbPublicationService {
 
     private boolean quiet;
 
-    public InfluxDbPublicationService(List<Target> selectedTargets, String customProjectName, String customPrefix, Map<String, Object> customData, Map<String, String> customDataTags, Map<String, Map<String, String>> customDataMapTags, Map<String, Map<String, Object>> customDataMap, long timestamp, String jenkinsEnvParameterField, String jenkinsEnvParameterTag, String measurementName, boolean quiet) {
+    private List<Map<String, Map<String, Object>>> customDataMapList;
+
+    private List<Map<String, Map<String, String>>> customDataMapTagsList;
+
+    public InfluxDbPublicationService(List<Target> selectedTargets, String customProjectName, String customPrefix, Map<String, Object> customData, Map<String, String> customDataTags, Map<String, Map<String, String>> customDataMapTags, Map<String, Map<String, Object>> customDataMap, long timestamp, String jenkinsEnvParameterField, String jenkinsEnvParameterTag, String measurementName, boolean quiet, List<Map<String, Map<String, String>>> customDataMapTagsList, List<Map<String, Map<String, Object>>> customDataMapList) {
         this.selectedTargets = selectedTargets;
         this.customProjectName = customProjectName;
         this.customPrefix = customPrefix;
@@ -165,6 +169,9 @@ public class InfluxDbPublicationService {
         this.jenkinsEnvParameterTag = jenkinsEnvParameterTag;
         this.measurementName = measurementName;
         this.quiet = quiet;
+        this.customDataMapList = customDataMapList == null ? Arrays.asList(customDataMap) : customDataMapList;
+        this.customDataMapTagsList = customDataMapTagsList == null ? Arrays.asList(customDataMapTags) : customDataMapTagsList;
+
     }
 
     public void perform(Run<?, ?> build, TaskListener listener, EnvVars env) {
@@ -196,14 +203,12 @@ public class InfluxDbPublicationService {
             logger.log(Level.FINE, "Data source empty: Custom Data");
         }
 
-        CustomDataMapPointGenerator cdmGen = new CustomDataMapPointGenerator(build, listener, measurementRenderer, timestamp, jenkinsEnvParameterTag, customPrefix, customDataMap, customDataMapTags);
-        if (cdmGen.hasReport()) {
-            this.printStepLog(listener, "[InfluxDB Plugin] Custom data map found. Writing to InfluxDB...");
-            addPoints(pointsToWrite, cdmGen, listener);
-        } else {
-            logger.log(Level.FINE, "Data source empty: Custom Data Map");
-        }
+        for (int i = 0; i < this.customDataMapList.size(); i++) {
+            Map<String, Map<String, Object>> dataMap = this.customDataMapList.get(i);
+            Map<String, Map<String, String>> dataMapTags = this.customDataMapTagsList.get(i);
 
+            this.handleCustomDataWrite(pointsToWrite, build, listener, measurementRenderer, timestamp+i, jenkinsEnvParameterTag, customPrefix, dataMap, dataMapTags);
+        }
         try {
             CoberturaPointGenerator cGen = new CoberturaPointGenerator(build, listener, measurementRenderer, timestamp, jenkinsEnvParameterTag, customPrefix);
             if (cGen.hasReport()) {
@@ -411,6 +416,17 @@ public class InfluxDbPublicationService {
     private void printStepLog(TaskListener listener, String log) {
         if (!this.quiet) {
             listener.getLogger().println(log);
+        }
+    }
+
+    private void handleCustomDataWrite(List<Point> pointsToWrite, Run<?, ?> build, TaskListener listener, ProjectNameRenderer measurementRenderer,
+                                       long timestamp, String jenkinsEnvParameterTag, String customPrefix, Map<String, Map<String, Object>> customDataMap, Map<String, Map<String, String>> customDataMapTags) {
+        CustomDataMapPointGenerator cdmGen = new CustomDataMapPointGenerator(build, listener, measurementRenderer, timestamp, jenkinsEnvParameterTag, customPrefix, customDataMap, customDataMapTags);
+        if (cdmGen.hasReport()) {
+            this.printStepLog(listener, "[InfluxDB Plugin] Custom data map found. Writing to InfluxDB...");
+            addPoints(pointsToWrite, cdmGen, listener);
+        } else {
+            logger.log(Level.FINE, "Data source empty: Custom Data Map");
         }
     }
 }

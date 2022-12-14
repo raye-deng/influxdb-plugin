@@ -36,6 +36,8 @@ public class InfluxDbPublisher extends Notifier implements SimpleBuildStep {
     private String customPrefix;
     private Map<String, Object> customData;
     private Map<String, String> customDataTags;
+    private List<Map<String, Map<String, Object>>> customDataMapList;
+    private List<Map<String, Map<String, String>>> customDataMapTagsList;
     private Map<String, Map<String, Object>> customDataMap;
     private Map<String, Map<String, String>> customDataMapTags;
     private String jenkinsEnvParameterField;
@@ -74,6 +76,24 @@ public class InfluxDbPublisher extends Notifier implements SimpleBuildStep {
     public void setSelectedTarget(String target) {
         Objects.requireNonNull(target);
         this.selectedTarget = target;
+    }
+
+    public List<Map<String, Map<String, Object>>> getCustomDataMapList() {
+        return customDataMapList;
+    }
+
+    @DataBoundSetter
+    public void setCustomDataMapList(List<Map<String, Map<String, Object>>> customDataMapList) {
+        this.customDataMapList = customDataMapList;
+    }
+
+    public List<Map<String, Map<String, String>>> getCustomDataMapTagsList() {
+        return customDataMapTagsList;
+    }
+
+    @DataBoundSetter
+    public void setCustomDataMapTagsList(List<Map<String, Map<String, String>>> customDataMapTagsList) {
+        this.customDataMapTagsList = customDataMapTagsList;
     }
 
     public String getCustomProjectName() {
@@ -219,6 +239,7 @@ public class InfluxDbPublisher extends Notifier implements SimpleBuildStep {
         String expandedCustomPrefix = env.expand(customPrefix);
         String expandedCustomProjectName = env.expand(customProjectName);
 
+
         // Preparing the service
         InfluxDbPublicationService publicationService = new InfluxDbPublicationService(
                 Collections.singletonList(target),
@@ -232,7 +253,9 @@ public class InfluxDbPublisher extends Notifier implements SimpleBuildStep {
                 jenkinsEnvParameterField,
                 jenkinsEnvParameterTag,
                 measurementName,
-                this.isQuiet()
+                this.isQuiet(),
+                customDataMapTagsList,
+                customDataMapList
         );
 
         // Publishes the metrics

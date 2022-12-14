@@ -57,7 +57,20 @@ public class GlobalRunListener extends RunListener<Run<?, ?>> {
             }
 
             // Creates the publication service
-            InfluxDbPublicationService publicationService = new InfluxDbPublicationService(selectedTargets, env.get(VARIABLE_PREFIX + "CUSTOM_PROJECT_NAME"), env.get(VARIABLE_PREFIX + "CUSTOM_PREFIX"), null, null, null, null, System.currentTimeMillis() * 1000000, env.expand(env.get(VARIABLE_PREFIX + "CUSTOM_FIELDS")), env.expand(env.get(VARIABLE_PREFIX + "CUSTOM_TAGS")), "jenkins_data", Boolean.parseBoolean(env.get(VARIABLE_PREFIX + "QUIET", "false")));
+            InfluxDbPublicationService publicationService = new InfluxDbPublicationService(selectedTargets,
+                    env.get(VARIABLE_PREFIX + "CUSTOM_PROJECT_NAME"), env.get(VARIABLE_PREFIX + "CUSTOM_PREFIX"),
+                    null,
+                    null,
+                    null,
+                    null,
+                    System.currentTimeMillis() * 1000000,
+                    env.expand(env.get(VARIABLE_PREFIX + "CUSTOM_FIELDS")),
+                    env.expand(env.get(VARIABLE_PREFIX + "CUSTOM_TAGS")),
+                    "jenkins_data",
+                    Boolean.parseBoolean(env.get(VARIABLE_PREFIX + "QUIET", "false")),
+                    null,
+                    null
+            );
 
             // Publication
             publicationService.perform(build, listener, env);
