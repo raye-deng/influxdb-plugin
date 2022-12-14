@@ -32,6 +32,8 @@ public class InfluxDbStep extends Step {
     private Map<String, String> customDataTags;
     private Map<String, Map<String, Object>> customDataMap;
     private Map<String, Map<String, String>> customDataMapTags;
+    private List<Map<String, Map<String, Object>>> customDataMapList;
+    private List<Map<String, Map<String, String>>> customDataMapTagsList;
     private String jenkinsEnvParameterField;
     private String jenkinsEnvParameterTag;
     private String measurementName;
@@ -64,6 +66,24 @@ public class InfluxDbStep extends Step {
 
     public String getCustomProjectName() {
         return customProjectName;
+    }
+
+    public List<Map<String, Map<String, Object>>> getCustomDataMapList() {
+        return customDataMapList;
+    }
+
+    @DataBoundSetter
+    public void setCustomDataMapList(List<Map<String, Map<String, Object>>> customDataMapList) {
+        this.customDataMapList = customDataMapList;
+    }
+
+    public List<Map<String, Map<String, String>>> getCustomDataMapTagsList() {
+        return customDataMapTagsList;
+    }
+
+    @DataBoundSetter
+    public void setCustomDataMapTagsList(List<Map<String, Map<String, String>>> customDataMapTagsList) {
+        this.customDataMapTagsList = customDataMapTagsList;
     }
 
     @DataBoundSetter
