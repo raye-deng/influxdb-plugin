@@ -35,6 +35,7 @@ public class InfluxDbStep extends Step {
     private String jenkinsEnvParameterField;
     private String jenkinsEnvParameterTag;
     private String measurementName;
+    private boolean quiet;
 
     @Deprecated
     private transient boolean replaceDashWithUnderscore;
@@ -63,6 +64,15 @@ public class InfluxDbStep extends Step {
 
     public String getCustomProjectName() {
         return customProjectName;
+    }
+
+    @DataBoundSetter
+    public void setQuiet(boolean quiet) {
+        this.quiet = quiet;
+    }
+
+    public boolean isQuiet() {
+        return quiet;
     }
 
     @DataBoundSetter

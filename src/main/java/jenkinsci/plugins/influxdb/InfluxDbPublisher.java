@@ -42,6 +42,7 @@ public class InfluxDbPublisher extends Notifier implements SimpleBuildStep {
     private String jenkinsEnvParameterTag;
     private String measurementName;
     private EnvVars env;
+    private boolean quiet;
 
     @DataBoundConstructor
     public InfluxDbPublisher(String selectedTarget) {
@@ -58,6 +59,15 @@ public class InfluxDbPublisher extends Notifier implements SimpleBuildStep {
             }
         }
         return target;
+    }
+
+    public boolean isQuiet() {
+        return quiet;
+    }
+
+    @DataBoundSetter
+    public void setQuiet(boolean quiet) {
+        this.quiet = quiet;
     }
 
     @DataBoundSetter
@@ -221,7 +231,9 @@ public class InfluxDbPublisher extends Notifier implements SimpleBuildStep {
                 currTime,
                 jenkinsEnvParameterField,
                 jenkinsEnvParameterTag,
-                measurementName);
+                measurementName,
+                this.isQuiet()
+        );
 
         // Publishes the metrics
         publicationService.perform(build, listener, env);
