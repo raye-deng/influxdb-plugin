@@ -9,6 +9,7 @@ import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkinsci.plugins.influxdb.models.Target;
+import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
@@ -38,6 +39,40 @@ public class InfluxDbStep extends Step {
     private String jenkinsEnvParameterTag;
     private String measurementName;
     private boolean quiet;
+    private boolean disableSonarData;
+    private boolean disableGitData;
+    private String actionName;
+
+    public boolean isDisableGitData() {
+        return disableGitData;
+    }
+
+    @DataBoundSetter
+    public void setDisableGitData(boolean disableGitData) {
+        this.disableGitData = disableGitData;
+    }
+
+    public boolean isDisableSonarData() {
+        return disableSonarData;
+    }
+
+    @DataBoundSetter
+    public void setDisableSonarData(boolean disableSonarData) {
+        this.disableSonarData = disableSonarData;
+    }
+
+    public String getActionName() {
+        return actionName;
+    }
+
+    @DataBoundSetter
+    public void setActionName(String actionName) {
+        this.actionName = actionName;
+        Jenkins jenkins = Jenkins.getInstanceOrNull();
+        if (jenkins != null) {
+            jenkins.getDescriptorByType(DescriptorImpl.class).setDisplayName(this.actionName);
+        }
+    }
 
     @Deprecated
     private transient boolean replaceDashWithUnderscore;
@@ -204,11 +239,13 @@ public class InfluxDbStep extends Step {
         if (replaceDashWithUnderscore) {
             context.get(TaskListener.class).getLogger().println("[InfluxDB Plugin][WARNING] Option \"replaceDashWithUnderscore\" is deprecated and will be removed. It is ignored now. Please remove it.");
         }
+
         return new InfluxDbStepExecution(this, context);
     }
 
     @Extension(optional = true)
     public static final class DescriptorImpl extends StepDescriptor implements Serializable {
+        String displayName;
 
         @Nonnull
         public List<Target> getTargets() {
@@ -225,14 +262,19 @@ public class InfluxDbStep extends Step {
 
         @Override
         public String getFunctionName() {
-            return "influxDbPublisher";
+            return "storeInfluxDBPoints";
+        }
+
+        public void setDisplayName(@Nonnull String name) {
+            this.displayName = name;
         }
 
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "Publish build data to InfluxDB";
+            return StringUtils.isNotEmpty(this.displayName) ? this.displayName : "Publish build data to InfluxDB";
         }
+
 
         @Override
         public Set<? extends Class<?>> getRequiredContext() {

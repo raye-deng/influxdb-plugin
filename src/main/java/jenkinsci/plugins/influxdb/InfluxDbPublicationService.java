@@ -152,9 +152,29 @@ public class InfluxDbPublicationService {
 
     private boolean quiet;
 
+    private boolean disableSonarData;
+
+    private boolean disableGitData;
+
     private List<Map<String, Map<String, Object>>> customDataMapList;
 
     private List<Map<String, Map<String, String>>> customDataMapTagsList;
+
+    public boolean isDisableSonarData() {
+        return disableSonarData;
+    }
+
+    public void setDisableSonarData(boolean disableSonarData) {
+        this.disableSonarData = disableSonarData;
+    }
+
+    public boolean isDisableGitData() {
+        return disableGitData;
+    }
+
+    public void setDisableGitData(boolean disableGitData) {
+        this.disableGitData = disableGitData;
+    }
 
     public InfluxDbPublicationService(List<Target> selectedTargets, String customProjectName, String customPrefix, Map<String, Object> customData, Map<String, String> customDataTags, Map<String, Map<String, String>> customDataMapTags, Map<String, Map<String, Object>> customDataMap, long timestamp, String jenkinsEnvParameterField, String jenkinsEnvParameterTag, String measurementName, boolean quiet, List<Map<String, Map<String, String>>> customDataMapTagsList, List<Map<String, Map<String, Object>>> customDataMapList) {
         this.selectedTargets = selectedTargets;
@@ -207,7 +227,7 @@ public class InfluxDbPublicationService {
             Map<String, Map<String, Object>> dataMap = this.customDataMapList.get(i);
             Map<String, Map<String, String>> dataMapTags = this.customDataMapTagsList.get(i);
 
-            this.handleCustomDataWrite(pointsToWrite, build, listener, measurementRenderer, timestamp+i, jenkinsEnvParameterTag, customPrefix, dataMap, dataMapTags);
+            this.handleCustomDataWrite(pointsToWrite, build, listener, measurementRenderer, timestamp + (i * 1L), jenkinsEnvParameterTag, customPrefix, dataMap, dataMapTags);
         }
         try {
             CoberturaPointGenerator cGen = new CoberturaPointGenerator(build, listener, measurementRenderer, timestamp, jenkinsEnvParameterTag, customPrefix);
@@ -250,12 +270,14 @@ public class InfluxDbPublicationService {
         }
 
         try {
-            GitPointGenerator gitGen = new GitPointGenerator(build, listener, measurementRenderer, timestamp, jenkinsEnvParameterTag, customPrefix);
-            if (gitGen.hasReport()) {
-                this.printStepLog(listener, "[InfluxDB Plugin] Git data found. Writing to InfluxDB...");
-                addPoints(pointsToWrite, gitGen, listener);
-            } else {
-                logger.log(Level.FINE, "Plugin skipped: Git");
+            if (!this.disableGitData) {
+                GitPointGenerator gitGen = new GitPointGenerator(build, listener, measurementRenderer, timestamp, jenkinsEnvParameterTag, customPrefix);
+                if (gitGen.hasReport()) {
+                    this.printStepLog(listener, "[InfluxDB Plugin] Git data found. Writing to InfluxDB...");
+                    addPoints(pointsToWrite, gitGen, listener);
+                } else {
+                    logger.log(Level.FINE, "Plugin skipped: Git");
+                }
             }
         } catch (NoClassDefFoundError ignore) {
             logger.log(Level.FINE, "Plugin skipped: Git");
@@ -269,12 +291,14 @@ public class InfluxDbPublicationService {
             logger.log(Level.FINE, "Plugin skipped: JUnit");
         }
 
-        SonarQubePointGenerator sonarGen = new SonarQubePointGenerator(build, listener, measurementRenderer, timestamp, jenkinsEnvParameterTag, customPrefix, env);
-        if (sonarGen.hasReport()) {
-            this.printStepLog(listener, "[InfluxDB Plugin] SonarQube data found. Writing to InfluxDB...");
-            addPoints(pointsToWrite, sonarGen, listener);
-        } else {
-            logger.log(Level.FINE, "Plugin skipped: SonarQube");
+        if (!this.disableSonarData) {
+            SonarQubePointGenerator sonarGen = new SonarQubePointGenerator(build, listener, measurementRenderer, timestamp, jenkinsEnvParameterTag, customPrefix, env);
+            if (sonarGen.hasReport()) {
+                this.printStepLog(listener, "[InfluxDB Plugin] SonarQube data found. Writing to InfluxDB...");
+                addPoints(pointsToWrite, sonarGen, listener);
+            } else {
+                logger.log(Level.FINE, "Plugin skipped: SonarQube");
+            }
         }
 
         SerenityJsonSummaryFile serenityJsonSummaryFile = new SerenityJsonSummaryFile(env.get("WORKSPACE"));
@@ -336,6 +360,9 @@ public class InfluxDbPublicationService {
 
             try (InfluxDBClient influxDB = getInfluxDBClient(build, target, url)) {
                 writeToInflux(target, influxDB, pointsToWrite);
+            } catch (Throwable e) {
+                this.printStepLog(listener, "[InfluxDB Plugin][Error] influxdb write failed, error message:" + e.getMessage());
+                e.printStackTrace(listener.getLogger());
             }
 
         }
@@ -373,7 +400,11 @@ public class InfluxDbPublicationService {
         try {
             pointsToWrite.addAll(Arrays.stream(generator.generate()).filter(Objects::nonNull).collect(Collectors.toList()));
         } catch (Exception e) {
-            this.printStepLog(listener, "[InfluxDB Plugin] Failed to collect data. Ignoring Exception:" + e);
+            if (this.quiet) {
+                listener.getLogger().println("[InfluxDB Plugin] Failed to collect data. Ignoring Exception:" + e.getMessage());
+            } else {
+                throw e;
+            }
         }
     }
 
@@ -405,7 +436,8 @@ public class InfluxDbPublicationService {
             influxDB.getWriteApiBlocking().writePoints(pointsToWrite);
         } catch (Exception e) {
             if (target.isExposeExceptions()) {
-                throw new InfluxReportException(e);
+                throw e;
+//                throw new InfluxReportException(e);
             } else {
                 //Exceptions not exposed by configuration. Just log and ignore.
                 logger.log(Level.WARNING, "Could not report to InfluxDB. Ignoring Exception.", e);
@@ -423,7 +455,7 @@ public class InfluxDbPublicationService {
                                        long timestamp, String jenkinsEnvParameterTag, String customPrefix, Map<String, Map<String, Object>> customDataMap, Map<String, Map<String, String>> customDataMapTags) {
         CustomDataMapPointGenerator cdmGen = new CustomDataMapPointGenerator(build, listener, measurementRenderer, timestamp, jenkinsEnvParameterTag, customPrefix, customDataMap, customDataMapTags);
         if (cdmGen.hasReport()) {
-            this.printStepLog(listener, "[InfluxDB Plugin] Custom data map found. Writing to InfluxDB...");
+//            this.printStepLog(listener, "[InfluxDB Plugin] Custom data map found. Writing to InfluxDB...");
             addPoints(pointsToWrite, cdmGen, listener);
         } else {
             logger.log(Level.FINE, "Data source empty: Custom Data Map");

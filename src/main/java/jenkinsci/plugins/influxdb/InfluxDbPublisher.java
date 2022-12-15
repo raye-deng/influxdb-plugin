@@ -46,6 +46,27 @@ public class InfluxDbPublisher extends Notifier implements SimpleBuildStep {
     private EnvVars env;
     private boolean quiet;
 
+    private boolean disableSonarData;
+    private boolean disableGitData;
+
+    public boolean isDisableSonarData() {
+        return disableSonarData;
+    }
+
+    @DataBoundSetter
+    public void setDisableSonarData(boolean disableSonarData) {
+        this.disableSonarData = disableSonarData;
+    }
+
+    public boolean isDisableGitData() {
+        return disableGitData;
+    }
+
+    @DataBoundSetter
+    public void setDisableGitData(boolean disableGitData) {
+        this.disableGitData = disableGitData;
+    }
+
     @DataBoundConstructor
     public InfluxDbPublisher(String selectedTarget) {
         this.selectedTarget = selectedTarget;
@@ -257,6 +278,9 @@ public class InfluxDbPublisher extends Notifier implements SimpleBuildStep {
                 customDataMapTagsList,
                 customDataMapList
         );
+
+        publicationService.setDisableSonarData(this.isDisableSonarData());
+        publicationService.setDisableGitData(this.isDisableGitData());
 
         // Publishes the metrics
         publicationService.perform(build, listener, env);

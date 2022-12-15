@@ -31,9 +31,9 @@ THE SOFTWARE.
         <version>3.50</version>
     </parent>
 
-    <artifactId>influxdb</artifactId>
+    <artifactId>ringcentral-influxdb</artifactId>
     <url>https://github.com/jenkinsci/influxdb-plugin</url>
-    <version>3.3.1-RC-SNAPSHOT</version>
+    <version>3.3.5-RC-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>InfluxDB Plugin</name>
@@ -108,10 +108,10 @@ THE SOFTWARE.
             <id>repo.jenkins-ci.org</id>
             <url>https://repo.jenkins-ci.org/public/</url>
         </repository>
-		<repository>
-			<id>maven.jenkins-ci.org</id>
-			<url>https://repo.jenkins-ci.org/releases/</url>
-		</repository>
+        <repository>
+            <id>maven.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/releases/</url>
+        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
@@ -235,8 +235,8 @@ THE SOFTWARE.
             <version>${workflow-step-api.version}</version>
         </dependency>
         <dependency>
-             <groupId>org.jenkins-ci.modules</groupId>
-             <artifactId>sshd</artifactId>
+            <groupId>org.jenkins-ci.modules</groupId>
+            <artifactId>sshd</artifactId>
             <version>${sshd.version}</version>
             <scope>test</scope>
         </dependency>
@@ -393,4 +393,8 @@ THE SOFTWARE.
             <email>aleksi.simell@eficode.com</email>
         </developer>
     </developers>
+
+    <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+    </build>
 </project>
