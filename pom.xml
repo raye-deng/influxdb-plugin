@@ -32,11 +32,11 @@ THE SOFTWARE.
     </parent>
 
     <artifactId>ringcentral-influxdb</artifactId>
-    <url>https://github.com/jenkinsci/influxdb-plugin</url>
+    <url>https://github.com/raye-deng/influxdb-plugin</url>
     <version>3.3.5-RC-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
-    <name>InfluxDB Plugin</name>
+    <name>InfluxDB Plugin For RingCentral Internal Jenkins</name>
     <description>Push time series data from other plugins to InfluxDB</description>
 
     <scm>
@@ -388,9 +388,9 @@ THE SOFTWARE.
     <!-- The current maintainers of the plugin -->
     <developers>
         <developer>
-            <id>aleksisimell</id>
-            <name>Aleksi Simell</name>
-            <email>aleksi.simell@eficode.com</email>
+            <id>raye.deng</id>
+            <name>Raye Deng</name>
+            <email>raye.deng@ringcentral.com</email>
         </developer>
     </developers>
 

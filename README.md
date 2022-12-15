@@ -70,10 +70,10 @@ From version 1.19 onwards, you can create and remove targets in pipelines direct
 def influxdb = Jenkins.instance.getDescriptorByType(jenkinsci.plugins.influxdb.DescriptorImpl)
 
 // version >= 2.0
-def influxdb = Jenkins.instance.getDescriptorByType(jenkinsci.plugins.influxdb.InfluxDbStep.DescriptorImpl)
+def influxdb = Jenkins.instance.getDescriptorByType(InfluxDbStep.DescriptorImpl)
 
 // Create target
-def target = new jenkinsci.plugins.influxdb.models.Target()
+def target = new Target()
 
 // Set target details
 
