@@ -40,9 +40,9 @@ THE SOFTWARE.
     <description>Push time series data from other plugins to InfluxDB</description>
 
     <scm>
-        <connection>scm:git:ssh://github.com/jenkinsci/influxdb-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/influxdb-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/influxdb-plugin</url>
+        <connection>scm:git:ssh://github.com/raye-deng/influxdb-plugin-for-rc.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/raye-deng/influxdb-plugin-for-rc.git</developerConnection>
+        <url>https://github.com/raye-deng/influxdb-plugin-for-rc.git</url>
         <tag>HEAD</tag>
     </scm>
 

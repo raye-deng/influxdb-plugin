@@ -253,7 +253,6 @@ public class InfluxDbStoreStep extends Notifier implements SimpleBuildStep {
 
         measurementName = getMeasurementNameIfNotBlankOrDefault();
         if (env == null) {
-//            env = build.getEnvironment(listener);
             env = envVars;
         }
 
